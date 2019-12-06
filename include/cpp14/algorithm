@@ -1,0 +1,166 @@
+/** algorithm
+ * Imported C++14 definitions for <algorithm>. 
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef CPP14_ALGORITHM
+#define CPP14_ALGORITHM
+
+#include <algorithm>
+
+namespace cpp14
+{
+  using namespace std;
+  
+  namespace detail
+  {
+    template <typename It>
+    using iter_ref = typename iterator_traits<It>::reference;
+    
+    template <typename It1, typename It2>
+    using iter_val_equal = bool (*) (iter_ref<It1>, iter_ref<It2>);
+  
+    template <typename It1, typename It2>
+    auto get_val_equal (void) -> iter_val_equal<It1, It2>
+    {
+      return [] (iter_ref<It1> val1, iter_ref<It2> val2) -> bool
+             { 
+               return val1 == val2; 
+             };
+    }
+  
+    template <typename It>
+    using is_random_access
+      = is_same<typename iterator_traits<It>::iterator_category,
+                random_access_iterator_tag>;
+    
+  }
+  
+  template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+  pair<InputIterator1, InputIterator2>
+  mismatch (InputIterator1 first1, InputIterator1 last1,
+            InputIterator2 first2, InputIterator2 last2,
+            BinaryPredicate pred)
+  {
+    while (first1 != last1 && first2 != last2 && pred (*first1, *first2))
+    {
+      ++first1;
+      ++first2;
+    }
+    return make_pair (first1, first2);
+  }
+  
+  template<class InputIterator1, class InputIterator2>
+  pair<InputIterator1, InputIterator2>
+  mismatch (InputIterator1 first1, InputIterator1 last1,
+            InputIterator2 first2, InputIterator2 last2)
+  {
+    return mismatch (first1, last1, first2, last2,
+                     detail::get_val_equal<InputIterator1, InputIterator2> ());
+  }
+  
+  template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+  bool equal(InputIterator1 first1, InputIterator1 last1,
+             InputIterator2 first2, InputIterator2 last2,
+             BinaryPredicate pred)
+  {
+    constexpr bool both_random_access
+      = detail::is_random_access<InputIterator1>::value
+        && detail::is_random_access<InputIterator2>::value;
+    if (both_random_access)
+    {
+      if (std::distance(first1, last1) != std::distance(first2, last2))
+        return false;
+      return std::equal(first1, last1, first2, pred);
+    }
+  
+    for (; first1 != last1 && first2 != last2;
+           ++first1, static_cast<void>(++first2))
+    {
+      if (!bool (pred(*first1, *first2)))
+        return false;
+    }
+    return first1 == last1 && first2 == last2;
+  }
+  
+  template <class InputIterator1, class InputIterator2>
+  bool equal(InputIterator1 first1, InputIterator1 last1,
+             InputIterator2 first2, InputIterator2 last2)
+  {
+    return equal (first1, last1, first2, last2,
+                     detail::get_val_equal<InputIterator1, InputIterator2> ());
+  }
+  
+  template <class ForwardIterator1, class ForwardIterator2,
+            class BinaryPredicate>
+  bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1,
+                      ForwardIterator2 first2, ForwardIterator2 last2,
+                      BinaryPredicate pred)
+  {
+    using namespace detail;
+    
+    constexpr bool both_random_access 
+      = is_random_access<ForwardIterator1>::value 
+        && is_random_access<ForwardIterator2>::value;
+    
+    if (both_random_access && 
+        std::distance(first1, last1) != std::distance(first2, last2))
+    {
+      return false;
+    }
+  
+    for (; first1 != last1 && first2 != last2;
+           ++first1, static_cast<void> (++first2))
+      if (!pred (*first1, *first2))
+        break;
+  
+    if (both_random_access)
+    {
+      if (first1 == last1)
+        return true;
+    }
+    else
+    {
+      auto remaining1 = std::distance(first1, last1);
+      auto remaining2 = std::distance(first2, last2);
+      if (remaining1 == 0 && remaining2 == 0)
+        return true;
+      if (remaining1 != remaining2)
+        return false;
+    }
+    
+    auto get_unary_pred = [&pred] (iter_ref<ForwardIterator1> scan_ref) 
+                          { 
+                            return [&] (iter_ref<ForwardIterator1> cmp_ref)
+                                   {
+                                     return pred (cmp_ref, scan_ref);
+                                   };
+                          };
+  
+    for (ForwardIterator1 scan = first1; scan != last1; ++scan)
+    {
+      auto unary_pred = get_unary_pred (*scan);
+      if (scan != find_if(first1, scan, unary_pred))
+        continue;
+      auto matches = std::count_if(first2, last2, unary_pred);
+      if (0 == matches || std::count_if(scan, last1, unary_pred) != matches)
+        return false;
+    }
+    return true;
+  }
+  
+  template <class ForwardIterator1, class ForwardIterator2>
+  bool is_permutation(ForwardIterator1 first1, ForwardIterator1 last1,
+                      ForwardIterator2 first2, ForwardIterator2 last2)
+  {
+    return is_permutation (first1, last1, first2, last2, 
+                 detail::get_val_equal<ForwardIterator1, ForwardIterator2> ());
+  }
+  
+}
+
+#endif
