@@ -14,7 +14,6 @@
 
 namespace cpp14
 {
-  using namespace std;
   
   namespace detail
   {
@@ -30,12 +29,12 @@ namespace cpp14
     
     template <std::size_t Idx, typename T, typename ...Tail>
     struct get_index_helper<Idx, T, T, Tail...> 
-      : integral_constant<std::size_t, Idx>
+      : std::integral_constant<std::size_t, Idx>
     { };
   
     template <std::size_t Idx, typename T>
     struct get_index_helper<Idx, T, T>
-      : integral_constant<std::size_t, Idx>
+      : std::integral_constant<std::size_t, Idx>
     { };
   
     template <std::size_t Idx, typename T, typename NotT>
@@ -57,25 +56,25 @@ namespace cpp14
   }
   
   template <class T, class ...Ts>
-  constexpr T& get (tuple<Ts...>& t) noexcept
+  constexpr T& get (std::tuple<Ts...>& t) noexcept
   {
     return std::get<detail::get_index<T, Ts...>::value> (t);
   }
   
   template <class T, class ...Ts>
-  constexpr T&& get (tuple<Ts...>&& t) noexcept
+  constexpr T&& get (std::tuple<Ts...>&& t) noexcept
   {
     return std::get<detail::get_index<T, Ts...>::value> (std::move (t));
   }
   
   template <class T, class ...Ts>
-  constexpr const T& get (const tuple<Ts...>& t) noexcept
+  constexpr const T& get (const std::tuple<Ts...>& t) noexcept
   {
     return std::get<detail::get_index<T, Ts...>::value> (t);
   }
   
   template <class T, class ...Ts>
-  constexpr const T&& get (const tuple<Ts...>&& t) noexcept
+  constexpr const T&& get (const std::tuple<Ts...>&& t) noexcept
   {
     return std::get<detail::get_index<T, Ts...>::value> (std::move (t));
   }

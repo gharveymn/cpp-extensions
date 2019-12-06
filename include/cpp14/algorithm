@@ -14,12 +14,11 @@
 
 namespace cpp14
 {
-  using namespace std;
   
   namespace detail
   {
     template <typename It>
-    using iter_ref = typename iterator_traits<It>::reference;
+    using iter_ref = typename std::iterator_traits<It>::reference;
     
     template <typename It1, typename It2>
     using iter_val_equal = bool (*) (iter_ref<It1>, iter_ref<It2>);
@@ -35,13 +34,13 @@ namespace cpp14
   
     template <typename It>
     using is_random_access
-      = is_same<typename iterator_traits<It>::iterator_category,
-                random_access_iterator_tag>;
+      = std::is_same<typename std::iterator_traits<It>::iterator_category,
+                     std::random_access_iterator_tag>;
     
   }
   
   template <class InputIterator1, class InputIterator2, class BinaryPredicate>
-  pair<InputIterator1, InputIterator2>
+  std::pair<InputIterator1, InputIterator2>
   mismatch (InputIterator1 first1, InputIterator1 last1,
             InputIterator2 first2, InputIterator2 last2,
             BinaryPredicate pred)
@@ -51,11 +50,11 @@ namespace cpp14
       ++first1;
       ++first2;
     }
-    return make_pair (first1, first2);
+    return std::make_pair (first1, first2);
   }
   
   template<class InputIterator1, class InputIterator2>
-  pair<InputIterator1, InputIterator2>
+  std::pair<InputIterator1, InputIterator2>
   mismatch (InputIterator1 first1, InputIterator1 last1,
             InputIterator2 first2, InputIterator2 last2)
   {
@@ -144,7 +143,7 @@ namespace cpp14
     for (ForwardIterator1 scan = first1; scan != last1; ++scan)
     {
       auto unary_pred = get_unary_pred (*scan);
-      if (scan != find_if(first1, scan, unary_pred))
+      if (scan != std::find_if(first1, scan, unary_pred))
         continue;
       auto matches = std::count_if(first2, last2, unary_pred);
       if (0 == matches || std::count_if(scan, last1, unary_pred) != matches)

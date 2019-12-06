@@ -1,13 +1,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cpp14/algorithm>
-#include <cpp14/memory>
-#include <cpp14/tuple>
-#include <cpp14/type_traits>
-#include <cpp14/utility>
-#include <cpp17/cmath>
-
+#include "algorithm"
+#include "memory"
+#include "tuple"
+#include "type_traits"
+#include "utility"
 
 std::string mirror_ends(const std::string& in)
 {
@@ -49,10 +47,5 @@ int main()
   
   test("radar");
   test("hello");
-  
-  std::byte y;
-  
-  std::cout << cpp17::assoc_laguerre(1, 10, 0.5) << '=' << L1(10, 0.5) << '\n'
-            << cpp17::assoc_laguerre(2, 10, 0.5) << '=' << L2(10, 0.5) << '\n';
   
 }

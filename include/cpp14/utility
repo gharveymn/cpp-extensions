@@ -15,7 +15,6 @@
 
 namespace cpp14
 {
-  using namespace std;
   
   // std::exchange
   // Referencing:
@@ -41,37 +40,37 @@ namespace cpp14
   };
   
   template <class T, class U>
-  constexpr T& get (pair<T, U>& p) noexcept
+  constexpr T& get (std::pair<T, U>& p) noexcept
   {
     return std::get<0> (p);
   }
   
   template <class T, class U>
-  constexpr const T& get (const pair<T, U>& p) noexcept
+  constexpr const T& get (const std::pair<T, U>& p) noexcept
   {
     return std::get<0> (p);
   }
   
   template <class T, class U>
-  constexpr T&& get (pair<T, U>&& p) noexcept
+  constexpr T&& get (std::pair<T, U>&& p) noexcept
   {
     return std::get<0> (std::move (p));
   }
   
   template <class T, class U>
-  constexpr T& get (pair<U, T>& p) noexcept
+  constexpr T& get (std::pair<U, T>& p) noexcept
   {
     return std::get<1> (p);
   }
   
   template <class T, class U>
-  constexpr const T& get (const pair<U, T>& p) noexcept
+  constexpr const T& get (const std::pair<U, T>& p) noexcept
   {
     return std::get<1> (p);
   }
   
   template <class T, class U>
-  constexpr T&& get (pair<U, T>&& p) noexcept
+  constexpr T&& get (std::pair<U, T>&& p) noexcept
   {
     return std::get<1> (std::move (p));
   }

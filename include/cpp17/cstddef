@@ -1,0 +1,95 @@
+/** cstddef
+ * Imported C++17 definitions for <cstddef>. 
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef CPP17_CSTDDEF
+#define CPP17_CSTDDEF
+
+#include <cstddef>
+#include "../cpp14/type_traits"
+
+namespace cpp17
+{
+  
+  //
+  // byte
+  //
+  
+  enum class byte : unsigned char {};
+  
+  namespace detail
+  {
+    template <typename T>
+    using int_byte = cpp14::enable_if_t<std::is_integral<T>::value, T>;
+  }
+  
+  template <class T>
+  constexpr detail::int_byte<T>& operator<< (cpp17::byte& b, T shift) noexcept
+  {
+    return cpp17::byte (static_cast<unsigned int> (b) << shift);
+  }
+  
+  template <class T>
+  constexpr detail::int_byte<T>& operator>> (cpp17::byte& b, T shift) noexcept
+  {
+    return cpp17::byte (static_cast<unsigned int> (b) >> shift);
+  }
+  
+  template <class T>
+  detail::int_byte<T>& operator<<= (cpp17::byte& b, T shift) noexcept
+  {
+    return b = (b << shift);
+  }
+  
+  template <class T>
+  detail::int_byte<T>& operator>>= (cpp17::byte& b, T shift) noexcept
+  {
+    return b = (b >> shift);
+  }
+  
+  constexpr cpp17::byte operator| (cpp17::byte l, cpp17::byte r) noexcept
+  {
+    return cpp17::byte (static_cast<unsigned int> (l) 
+                        | static_cast<unsigned int> (r));
+  }
+  
+  constexpr cpp17::byte operator& (cpp17::byte l, cpp17::byte r) noexcept
+  {
+    return cpp17::byte (static_cast<unsigned int> (l) 
+                        & static_cast<unsigned int> (r));
+  }
+  
+  constexpr cpp17::byte operator^ (cpp17::byte l, cpp17::byte r) noexcept
+  {
+    return cpp17::byte (static_cast<unsigned int> (l) 
+                        ^ static_cast<unsigned int> (r));
+  }
+  
+  constexpr cpp17::byte operator~ (cpp17::byte b) noexcept
+  {
+    return cpp17::byte (~static_cast<unsigned int> (b));
+  }
+  
+  cpp17::byte& operator|= (cpp17::byte& l, cpp17::byte r) noexcept
+  {
+    return l = (l | r);
+  }
+  
+  cpp17::byte& operator&= (cpp17::byte& l, cpp17::byte r) noexcept
+  {
+    return l = (l & r);
+  }
+  
+  cpp17::byte& operator^= (cpp17::byte& l, cpp17::byte r) noexcept
+  {
+    return l = (l ^ r);
+  }
+  
+}
+
+#endif

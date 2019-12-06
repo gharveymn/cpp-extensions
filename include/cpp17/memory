@@ -1,0 +1,160 @@
+/** memory
+ * Imported C++17 definitions for <memory>.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef CPP_EXTENSIONS_MEMORY
+#define CPP_EXTENSIONS_MEMORY
+
+#include <memory>
+
+namespace cpp17
+{
+  
+  template <class T>
+  void destroy_at (T* p)
+  {
+    p->~T ();
+  }
+  
+  template <class ForwardIt>
+  void destroy (ForwardIt first, ForwardIt last)
+  {
+    for (; first != last; ++first)
+      cpp17::destroy_at (std::addressof (*first));
+  }
+  
+  template<class ForwardIt, class Size>
+  ForwardIt destroy_n (ForwardIt first, Size n)
+  {
+    for (; n > 0; static_cast<void> (++first), --n)
+      cpp17::destroy_at (std::addressof (*first));
+    return first;
+  }
+  
+  template <class InputIt, class ForwardIt>
+  ForwardIt uninitialized_move (InputIt first, InputIt last, ForwardIt d_first)
+  {
+    using Value =  typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = d_first;
+    try 
+    {
+      for (; first != last; ++first, static_cast<void> (++current)) 
+      {
+        ::new (static_cast<void *> (std::addressof (*current))) 
+                Value (std::move (*first));
+      }
+      return current;
+    } 
+    catch (...) 
+    {
+      for (; d_first != current; ++d_first)
+        d_first->~Value ();
+      throw;
+    }
+  }
+  
+  template <class InputIt, class Size, class ForwardIt>
+  std::pair<InputIt, ForwardIt> 
+  uninitialized_move_n (InputIt first, Size count, ForwardIt d_first)
+  {
+    using Value =  typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = d_first;
+    try 
+    {
+      for (; count > 0; ++first, static_cast<void> (++current), --count) 
+      {
+        ::new (static_cast<void *> (std::addressof (*current))) 
+                Value (std::move (*first));
+      }
+    } 
+    catch (...) 
+    {
+      for (; d_first != current; ++d_first) 
+      {
+        d_first->~Value ();
+      }
+      throw;
+    }
+    return std::make_pair (first, current);
+  }
+  
+  template <class ForwardIt>
+  void uninitialized_default_construct (ForwardIt first, ForwardIt last)
+  {
+    using Value = typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = first;
+    try 
+    {
+      for (; current != last; ++current)
+        ::new (static_cast<void *> (std::addressof (*current))) Value;
+    }  
+    catch (...) 
+    {
+      cpp17::destroy (first, current);
+      throw;
+    }
+  }
+  
+  template <class ForwardIt, class Size>
+  ForwardIt uninitialized_default_construct_n ( ForwardIt first, Size n )
+  {
+    using Value = typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = first;
+    try 
+    {
+      for (; n > 0 ; static_cast<void> (++current), --n)
+        ::new (static_cast<void *> (std::addressof (*current))) Value;
+      return current;
+    }  
+    catch (...) 
+    {
+      cpp17::destroy (first, current);
+      throw;
+    }
+  }
+  
+  template <class ForwardIt>
+  void uninitialized_value_construct (ForwardIt first, ForwardIt last)
+  {
+    using Value = typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = first;
+    try 
+    {
+      for (; current != last; ++current)
+        ::new (static_cast<void *> (std::addressof (*current))) Value ();
+    } 
+    catch (...) 
+    {
+      cpp17::destroy (first, current);
+      throw;
+    }
+  }
+  
+  template <class ForwardIt, class Size>
+  ForwardIt uninitialized_value_construct_n ( ForwardIt first, Size n )
+  {
+    using T = typename std::iterator_traits<ForwardIt>::value_type;
+    ForwardIt current = first;
+    try 
+    {
+      for (; n > 0 ; static_cast<void> (++current), --n) 
+      {
+        ::new (static_cast<void *> (std::addressof (*current))) T ();
+      }
+      return current;
+    }  
+    catch (...) 
+    {
+      cpp17::destroy (first, current);
+      throw;
+    }
+  }
+  
+}
+
+#endif

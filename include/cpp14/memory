@@ -14,7 +14,6 @@
 
 namespace cpp14
 {
-  using namespace std;
   
   // make_unique
   // Referencing:

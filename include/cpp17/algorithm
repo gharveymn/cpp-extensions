@@ -1,0 +1,177 @@
+/** algorithm
+ * Imported C++17 definitions for <algorithm>.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef CPP_EXTENSIONS_ALGORITHM
+#define CPP_EXTENSIONS_ALGORITHM
+
+#include <algorithm>
+#include "type_traits"
+
+namespace cpp17
+{
+  template <class InputIt, class Size, class UnaryFunction>
+  InputIt for_each_n ( InputIt first, Size n, UnaryFunction f )
+  {
+    for (Size i = 0; i < n; ++first, static_cast<void> (++i)) 
+    {
+      f (*first);
+    }
+    return first;
+  }
+  
+  namespace detail
+  {
+    /// Reservoir sampling algorithm.
+    template <typename InputIterator, typename RandomAccessIterator,
+              typename Size, typename UniformRandomBitGenerator>
+    RandomAccessIterator
+    sample (InputIterator first, InputIterator last, std::input_iterator_tag,
+            RandomAccessIterator out, std::random_access_iterator_tag,
+            Size n, UniformRandomBitGenerator&& g)
+    {
+      using distrib_type = std::uniform_int_distribution<Size>;
+      using param_type = typename distrib_type::param_type;
+      distrib_type dist {};
+      Size sample_sz = 0;
+      
+      while (first != last && sample_sz != n)
+      {
+        out[sample_sz++] = *first;
+        ++first;
+      }
+      
+      for (Size population_size = sample_sz; first != last;
+           ++first, (void) ++population_size)
+      {
+        const auto k = dist (g, param_type {0, population_size});
+        if (k < n)
+          out[k] = *first;
+      }
+      return out + sample_sz;
+    }
+  
+    /// Selection sampling algorithm.
+    template <typename ForwardIterator, typename OutputIterator, 
+              typename Category, typename Size, typename URBG>
+    OutputIterator sample(ForwardIterator first, ForwardIterator last,
+                          std::forward_iterator_tag,
+                          OutputIterator out, Category,
+                          Size n, URBG&& g)
+    {
+      using distrib_type = std::uniform_int_distribution<Size>;
+      using param_type = typename distrib_type::param_type;
+      using USize = typename std::make_unsigned<Size>::type;
+      using Gen = typename std::remove_reference<URBG>::type;
+      using uc_type = typename std::common_type<typename Gen::result_type, 
+                                                USize>::type;
+    
+      distrib_type dist {};
+      Size unsampled_size = std::distance(first, last);
+      n = std::min(n, unsampled_size);
+    
+      // If possible, we use gen_pair to efficiently produce
+      // two random numbers using a single distribution invocation:
+      
+      auto gen_pair = [&g] (Size x, Size y) -> std::pair<Size, Size>
+      {
+        Size tmp = std::uniform_int_distribution<Size> {0, (x * y) - 1} (g);
+        return std::make_pair (tmp / y, tmp % y);
+      };
+    
+      const uc_type urng_range = g.max() - g.min();
+      if (urng_range/uc_type(unsampled_size) >= uc_type(unsampled_size))
+        // I.e. (urng_range >= unsampled_size * unsampled_size) but without
+        // wrapping issues.
+      {
+        while (n != 0 && unsampled_size >= 2)
+        {
+          const std::pair<Size, Size> p = gen_pair (unsampled_size, 
+                                                    unsampled_size - 1);
+        
+          --unsampled_size;
+          if (p.first < n)
+          {
+            *out++ = *first;
+            --n;
+          }
+        
+          ++first;
+        
+          if (n == 0) 
+            break;
+        
+          --unsampled_size;
+          if (p.second < n)
+          {
+            *out++ = *first;
+            --n;
+          }
+        
+          ++first;
+        }
+      }
+    
+      // The loop above is otherwise equivalent to this one-at-a-time version:
+    
+      for (; n != 0; ++first)
+        if (dist (g, param_type {0, --unsampled_size}) < n)
+        {
+          *out++ = *first;
+          --n;
+        }
+      return out;
+    }
+  }
+  
+  template <class PopulationIter, class SampleIter, class Distance, class URBG>
+  SampleIter sample (PopulationIter first, PopulationIter last, SampleIter out, 
+                     Distance n, URBG&& g)
+  {
+    using pop_category 
+      = typename std::iterator_traits<PopulationIter>::iterator_category;
+    using sample_category 
+      = typename std::iterator_traits<SampleIter>::iterator_category;
+    
+    using fd_iter_tag = std::forward_iterator_tag;
+    using ra_iter_tag = std::random_access_iterator_tag;
+  
+    static_assert (cpp17::disjunction<
+                     std::is_convertible<pop_category, fd_iter_tag>,
+                     std::is_convertible<sample_category, ra_iter_tag>>::value,
+      "SampleIter must be convertible to RandomAccessIterator when"
+      " PopulationIter does not meet the requirements of ForwardIterator");
+
+    static_assert(std::is_integral<Distance>::value,
+                  "sample size must be an integer type");
+
+    using diff_type 
+      = typename std::iterator_traits<PopulationIter>::difference_type;
+    
+    return detail::sample(first, last, pop_category {}, out, 
+                          sample_category {}, diff_type (n),
+                          std::forward<URBG> (g));
+  }
+  
+  template <class T>
+  constexpr const T& clamp (const T& v, const T& lo, const T& hi)
+  {
+    return assert (!(hi < lo)), 
+             (v < lo) ? lo : ((hi < v) ? hi : v);
+  }
+  
+  template <class T, class Compare>
+  constexpr const T& clamp (const T& v, const T& lo, const T& hi, Compare comp)
+  {
+    return assert (!comp (hi, lo)), 
+             comp (v, lo) ? lo : (comp (hi, v) ? hi : v);
+  }
+  
+}
+
+#endif
