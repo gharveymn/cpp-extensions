@@ -1,0 +1,22 @@
+/** utility
+ * Combined imported definitions from C++14 and C++17.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef EXT_UTILITY
+#define EXT_UTILITY
+
+#include "../cpp14/utility"
+
+namespace ext
+{
+  using cpp14::exchange;
+  using cpp14::integer_sequence;
+  using cpp14::get;
+}
+
+#endif

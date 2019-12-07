@@ -1,0 +1,32 @@
+/** memory.hpp
+ * Combined imported definitions from C++14 and C++17.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef EXT_MEMORY
+#define EXT_MEMORY
+
+#include "../cpp14/memory"
+#include "../cpp17/memory"
+
+namespace ext
+{
+  using cpp14::make_unique;
+  
+  using cpp17::destroy_at;
+  using cpp17::destroy;
+  using cpp17::destroy_n;
+  using cpp17::uninitialized_move;
+  using cpp17::uninitialized_move_n;
+  using cpp17::uninitialized_default_construct;
+  using cpp17::uninitialized_default_construct_n;
+  using cpp17::uninitialized_value_construct;
+  using cpp17::uninitialized_value_construct_n;
+}
+
+
+#endif

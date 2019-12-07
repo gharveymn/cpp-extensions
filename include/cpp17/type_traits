@@ -202,42 +202,42 @@ namespace cpp17
                                              std::declval<Args> ()...));
     };
   
-    struct __nat
-    {
-      __nat() = delete;
-      __nat(const __nat&) = delete;
-      __nat& operator=(const __nat&) = delete;
-      ~__nat() = delete;
-    };
+//    struct __nat
+//    {
+//      __nat() = delete;
+//      __nat(const __nat&) = delete;
+//      __nat& operator=(const __nat&) = delete;
+//      ~__nat() = delete;
+//    };
     
     // __invokable
-    template <class _Ret, class _Fp, class ..._Args>
-    struct __invokable_r
-    {
-      template <class _XFp, class ..._XArgs>
-      static auto __try_call(int) -> decltype(
-      detail::invoke(std::declval<_XFp>(), std::declval<_XArgs>()...));
-      template <class _XFp, class ..._XArgs>
-      static __nat __try_call(...);
-    
-      // FIXME: Check that _Ret, _Fp, and _Args... are all complete types, cv void,
-      // or incomplete array types as required by the standard.
-      using _Result = decltype(__try_call<_Fp, _Args...>(0));
-    
-      using type =
-      typename std::conditional<
-        ! std::is_same<_Result, __nat>::value,
-        typename std::conditional<
-          std::is_void<_Ret>::value,
-          std::true_type,
-          std::is_convertible<_Result, _Ret>
-                          >::type,
-          std::false_type
-      >::type;
-      static const bool value = type::value;
-    };
-    template <class _Fp, class ..._Args>
-    using __invokable = __invokable_r<void, _Fp, _Args...>;
+//    template <class _Ret, class _Fp, class ..._Args>
+//    struct __invokable_r
+//    {
+//      template <class _XFp, class ..._XArgs>
+//      static auto __try_call(int) -> decltype(
+//      detail::invoke(std::declval<_XFp>(), std::declval<_XArgs>()...));
+//      template <class _XFp, class ..._XArgs>
+//      static __nat __try_call(...);
+//    
+//      // FIXME: Check that _Ret, _Fp, and _Args... are all complete types, cv void,
+//      // or incomplete array types as required by the standard.
+//      using _Result = decltype(__try_call<_Fp, _Args...>(0));
+//    
+//      using type =
+//      typename std::conditional<
+//        ! std::is_same<_Result, __nat>::value,
+//        typename std::conditional<
+//          std::is_void<_Ret>::value,
+//          std::true_type,
+//          std::is_convertible<_Result, _Ret>
+//                          >::type,
+//          std::false_type
+//      >::type;
+//      static const bool value = type::value;
+//    };
+//    template <class _Fp, class ..._Args>
+//    using __invokable = __invokable_r<void, _Fp, _Args...>;
     
   }
   
@@ -404,8 +404,6 @@ namespace cpp17
   struct is_nothrow_invocable : is_nothrow_invocable_r<void, F, ArgTypes...>
   { };
   
-//  : cpp17::conjunction<detail::is_invocable<
-//                           cpp17::invoke_result_t<F, ArgTypes...>, void>,
 }
 
 #endif

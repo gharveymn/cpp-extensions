@@ -1,0 +1,27 @@
+/** algorithm
+ * Combined imported definitions from C++14 and C++17.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef EXT_ALGORITHM
+#define EXT_ALGORITHM
+
+#include "../cpp14/algorithm"
+#include "../cpp17/algorithm"
+
+namespace ext
+{
+  using cpp14::mismatch;
+  using cpp14::equal;
+  using cpp14::is_permutation;
+  
+  using cpp17::for_each_n;
+  using cpp17::sample;
+  using cpp17::clamp;
+}
+
+#endif

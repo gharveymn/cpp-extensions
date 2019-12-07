@@ -1,0 +1,65 @@
+/** type_traits.hpp
+ * Combined imported definitions from C++14 and C++17.
+ * 
+ * Copyright © 2019 Gene Harvey
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#ifndef EXT_TYPE_TRAITS
+#define EXT_TYPE_TRAITS
+
+#include "../cpp14/type_traits"
+#include "../cpp17/type_traits"
+
+namespace ext
+{
+  using cpp14::remove_const_t;
+  using cpp14::remove_volatile_t;
+  using cpp14::remove_cv_t;
+  using cpp14::add_const_t;
+  using cpp14::add_volatile_t;
+  using cpp14::add_cv_t;
+  
+  using cpp14::remove_reference_t;
+  using cpp14::add_lvalue_reference_t;
+  using cpp14::add_rvalue_reference_t;
+  
+  using cpp14::make_signed_t;
+  using cpp14::make_unsigned_t;
+  
+  using cpp14::remove_extent_t;
+  using cpp14::remove_all_extents_t;
+  
+  using cpp14::remove_pointer_t;
+  using cpp14::add_pointer_t;
+  
+  using cpp14::aligned_union_t;
+  using cpp14::decay_t;
+  using cpp14::enable_if_t;
+  using cpp14::conditional_t;
+  using cpp14::common_type_t;
+  using cpp14::underlying_type_t;
+  using cpp14::result_of_t;
+  
+  using cpp17::bool_constant;
+  using cpp17::negation;
+  using cpp17::conjunction;
+  using cpp17::disjunction;
+  using cpp17::void_t;
+  using cpp17::invoke_result;
+  using cpp17::invoke_result_t;
+  using cpp17::is_swappable_with;
+  using cpp17::is_swappable;
+  using cpp17::is_nothrow_swappable_with;
+  using cpp17::is_nothrow_swappable;
+  using cpp17::is_invocable_r;
+  using cpp17::is_invocable;
+  using cpp17::is_nothrow_invocable_r;
+  using cpp17::is_nothrow_invocable;
+  
+  
+}
+
+#endif

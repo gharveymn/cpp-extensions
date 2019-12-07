@@ -11,7 +11,6 @@
 #define CPP17_CSTDDEF
 
 #include <cstddef>
-#include "../cpp14/type_traits"
 
 namespace cpp17
 {
@@ -25,7 +24,8 @@ namespace cpp17
   namespace detail
   {
     template <typename T>
-    using int_byte = cpp14::enable_if_t<std::is_integral<T>::value, T>;
+    using int_byte 
+      = typename std::enable_if<std::is_integral<T>::value, T>::type;
   }
   
   template <class T>
