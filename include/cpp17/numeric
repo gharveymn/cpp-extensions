@@ -7,8 +7,8 @@
  * of the MIT license. See the LICENSE file for details.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef CPP_EXTENSIONS_NUMERIC
-#define CPP_EXTENSIONS_NUMERIC
+#ifndef CPP17_NUMERIC
+#define CPP17_NUMERIC
 
 #include <numeric>
 

@@ -7,8 +7,8 @@
  * of the MIT license. See the LICENSE file for details.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef CPP_EXTENSIONS_ALGORITHM
-#define CPP_EXTENSIONS_ALGORITHM
+#ifndef CPP17_ALGORITHM
+#define CPP17_ALGORITHM
 
 #include <algorithm>
 #include <cassert>

@@ -7,8 +7,8 @@
  * of the MIT license. See the LICENSE file for details.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef CPP_EXTENSIONS_MEMORY
-#define CPP_EXTENSIONS_MEMORY
+#ifndef CPP17_MEMORY
+#define CPP17_MEMORY
 
 #include <memory>
 

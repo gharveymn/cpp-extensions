@@ -7,8 +7,8 @@
  * of the MIT license. See the LICENSE file for details.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef CPP_EXTENSIONS_TYPE_TRAITS
-#define CPP_EXTENSIONS_TYPE_TRAITS
+#ifndef CPP17_TYPE_TRAITS
+#define CPP17_TYPE_TRAITS
 
 #include <type_traits>
 #include <utility>

@@ -6,6 +6,8 @@
 #include "memory"
 #include "numeric"
 #include "type_traits"
+#include "variant"
+#include <variant>
 
 double L1(unsigned m, double x) { return -x + m + 1; }
 double L2(unsigned m, double x) { return 0.5*(x*x-2*(m+2)*x+(m+1)*(m+2)); }
@@ -26,7 +28,6 @@ int main()
   static_assert( cpp17::is_invocable_r<int(*)(), decltype(func2), char>::value, "");
   
   std::string in = "abcdefgh", out;
-  std::sample
   cpp17::sample(in.begin(), in.end(), std::back_inserter(out),
               5, std::mt19937{std::random_device{}()});
   std::cout << "five random letters out of " << in << " : " << out << '\n';
