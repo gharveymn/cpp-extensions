@@ -5,6 +5,19 @@ SET(CMAKE_CXX_STANDARD 11)
 
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
 
+INCLUDE_DIRECTORIES(..)
 INCLUDE_DIRECTORIES(../../include)
 
-#ADD_EXECUTABLE(tuple_fail tuple_fail.cpp)
+MACRO(FAIL_TEST name)
+	ADD_EXECUTABLE(${name}_fail ${name}.cpp)
+ENDMACRO()
+
+ADD_CUSTOM_TARGET(fail_tests)
+
+file(GLOB filenames "*.cpp")
+
+FOREACH(fn ${filenames})
+	GET_FILENAME_COMPONENT(name ${fn} NAME_WE)
+	FAIL_TEST(${name})
+	ADD_DEPENDENCIES(fail_tests ${name}_fail)
+ENDFOREACH()

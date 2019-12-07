@@ -26,6 +26,7 @@ int main()
   static_assert( cpp17::is_invocable_r<int(*)(), decltype(func2), char>::value, "");
   
   std::string in = "abcdefgh", out;
+  std::sample
   cpp17::sample(in.begin(), in.end(), std::back_inserter(out),
               5, std::mt19937{std::random_device{}()});
   std::cout << "five random letters out of " << in << " : " << out << '\n';

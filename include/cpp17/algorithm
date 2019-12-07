@@ -11,6 +11,7 @@
 #define CPP_EXTENSIONS_ALGORITHM
 
 #include <algorithm>
+#include <cassert>
 #include "type_traits"
 
 namespace cpp17
@@ -38,22 +39,22 @@ namespace cpp17
       using distrib_type = std::uniform_int_distribution<Size>;
       using param_type = typename distrib_type::param_type;
       distrib_type dist {};
-      Size sample_sz = 0;
+      Size sample_size = 0;
       
-      while (first != last && sample_sz != n)
+      while (first != last && sample_size != n)
       {
-        out[sample_sz++] = *first;
+        out[sample_size++] = *first;
         ++first;
       }
       
-      for (Size population_size = sample_sz; first != last;
+      for (Size population_size = sample_size; first != last;
            ++first, (void) ++population_size)
       {
         const auto k = dist (g, param_type {0, population_size});
         if (k < n)
           out[k] = *first;
       }
-      return out + sample_sz;
+      return out + sample_size;
     }
   
     /// Selection sampling algorithm.
@@ -85,7 +86,8 @@ namespace cpp17
       };
     
       const uc_type urng_range = g.max() - g.min();
-      if (urng_range/uc_type(unsampled_size) >= uc_type(unsampled_size))
+      if (unsampled_size == 0 || 
+          urng_range / uc_type (unsampled_size) >= uc_type (unsampled_size))
         // I.e. (urng_range >= unsampled_size * unsampled_size) but without
         // wrapping issues.
       {
