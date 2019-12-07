@@ -14,12 +14,7 @@
 #include <tr1/cmath>
 
 namespace cpp17
-{
-  namespace cmath_detail
-  {
-    using namespace std;
-  }
-  
+{  
   using std::tr1::assoc_laguerref;
   using std::tr1::assoc_laguerre;
   using std::tr1::assoc_laguerrel;

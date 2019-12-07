@@ -86,66 +86,159 @@ namespace cpp17
   namespace detail 
   {
     template <class T>
-    struct is_reference_wrapper : std::false_type 
+    struct is_reference_wrapper_impl 
+      : std::false_type 
     { };
     
     template <class U>
-    struct is_reference_wrapper<std::reference_wrapper<U>> : std::true_type 
+    struct is_reference_wrapper_impl<std::reference_wrapper<U>> 
+      : std::true_type
+    { };
+    
+    
+    template <class U>
+    struct is_reference_wrapper 
+      : detail::is_reference_wrapper_impl<typename std::remove_cv<U>::type> 
     { };
     
     template<class T>
     struct invoke_impl 
     {
+      // 7
       template<class F, class ...Args>
-      static auto call(F&& f, Args&&... args) -> decltype (
-                            std::forward<F> (f)(std::forward<Args> (args)...));
+      static auto call(F&& f, Args&&... args) noexcept (
+        noexcept (
+          std::forward<F> (f)(std::forward<Args> (args)...)))
+        -> decltype (
+          std::forward<F> (f)(std::forward<Args> (args)...))
+      {
+        return std::forward<F> (f)(std::forward<Args> (args)...);
+      }
     };
   
     template<class B, class MT>
     struct invoke_impl<MT B::*> 
     {
-      template<typename T, typename Td = typename std::decay<T>::type,
+      
+      // 1, 3
+      template <typename T, typename Td = typename std::decay<T>::type,
           class = typename std::enable_if<std::is_base_of<B, Td>::value>::type>
-      static auto get (T&& t) -> T&&;
+      static auto get (T&& t) noexcept (noexcept (std::forward<T> (t))) 
+                              -> decltype (std::forward<T> (t))
+      {
+        return std::forward<T> (t);        
+      }
     
-      template<typename T, typename Td = typename std::decay<T>::type,
+      // 2, 4
+      template <typename T, typename Td = typename std::decay<T>::type,
         class = typename std::enable_if<is_reference_wrapper<Td>::value>::type>
-      static auto get (T&& t) -> decltype (t.get ());
+      static auto get (T&& t) noexcept (noexcept (t.get ()))
+                              -> decltype (t.get ())
+      {
+        return t.get ();                        
+      }
     
-      template<typename T, typename Td = typename std::decay<T>::type,
+      // 3,6
+      template <typename T, typename Td = typename std::decay<T>::type,
         class = typename std::enable_if<!std::is_base_of<B, Td>::value>::type,
         class = typename std::enable_if<!is_reference_wrapper<Td>::value>::type>
-      static auto get(T&& t) -> decltype (*std::forward<T> (t));
+      static auto get (T&& t) noexcept (noexcept (*std::forward<T> (t)))
+                              -> decltype (*std::forward<T> (t))
+      {
+        return *std::forward<T> (t);
+      }
     
-      template<typename T, typename... Args, typename MT1,
+      // 1, 2, 3
+      template <typename T, typename... Args, typename MT1,
            class = typename std::enable_if<std::is_function<MT1>::value>::type>
-      static auto call(MT1 B::*pmf, T&& t, Args&&... args) -> decltype (
-                                 (invoke_impl::get (std::forward<T> (t)).*pmf)(
-                                   std::forward<Args> (args)...));
+      static auto call (MT1 B::*pmf, T&& t, Args&&... args) noexcept (
+        noexcept (
+          (invoke_impl::get (std::forward<T> (t)).*pmf)(
+                                                std::forward<Args> (args)...))) 
+        -> decltype (
+          (invoke_impl::get (std::forward<T> (t)).*pmf)(
+                                                std::forward<Args> (args)...))
+      {
+        return (invoke_impl::get (std::forward<T> (t)).*pmf)(
+                                                std::forward<Args> (args)...);  
+      }
     
-      template<typename T>
-      static auto call(MT B::*pmd, T&& t) -> decltype (
-                                  invoke_impl::get (std::forward<T> (t)).*pmd);
+      // 4, 5, 6
+      template <typename T>
+      static auto call (MT B::*pmd, T&& t) noexcept (
+        noexcept (
+          invoke_impl::get (std::forward<T> (t)).*pmd)) 
+        -> decltype (
+          invoke_impl::get (std::forward<T> (t)).*pmd)
+      {
+        return invoke_impl::get (std::forward<T> (t)).*pmd;
+      }
     };
   
     template<typename F, typename ...Args, 
              typename Fd = typename std::decay<F>::type>
-    auto invoke (F&& f, Args&&... args) -> decltype (
-       invoke_impl<Fd>::call(std::forward<F>(f), std::forward<Args>(args)...));
+    inline auto invoke (F&& f, Args&&... args) noexcept (
+      noexcept (
+       invoke_impl<Fd>::call(std::forward<F> (f), 
+                             std::forward<Args> (args)...))) 
+      -> decltype (
+       invoke_impl<Fd>::call(std::forward<F> (f), 
+                             std::forward<Args> (args)...))
+    {
+      return invoke_impl<Fd>::call(std::forward<F> (f),
+                                   std::forward<Args> (args)...);
+    }
     
     template <typename Void, typename, typename...>
     struct invoke_result 
     { };
     
     template <typename F, typename ...Args>
-    struct invoke_result<decltype (void (detail::invoke (
-                                           std::declval<F> (), 
-                                           std::declval<Args> ()...))),
-                         F, Args...> 
+    struct invoke_result<cpp17::void_t<decltype (detail::invoke (
+                               std::declval<F> (), std::declval<Args> ()...))>,
+                         F, Args...>
     {
       using type = decltype (detail::invoke (std::declval<F> (),
                                              std::declval<Args> ()...));
     };
+  
+    struct __nat
+    {
+      __nat() = delete;
+      __nat(const __nat&) = delete;
+      __nat& operator=(const __nat&) = delete;
+      ~__nat() = delete;
+    };
+    
+    // __invokable
+    template <class _Ret, class _Fp, class ..._Args>
+    struct __invokable_r
+    {
+      template <class _XFp, class ..._XArgs>
+      static auto __try_call(int) -> decltype(
+      detail::invoke(std::declval<_XFp>(), std::declval<_XArgs>()...));
+      template <class _XFp, class ..._XArgs>
+      static __nat __try_call(...);
+    
+      // FIXME: Check that _Ret, _Fp, and _Args... are all complete types, cv void,
+      // or incomplete array types as required by the standard.
+      using _Result = decltype(__try_call<_Fp, _Args...>(0));
+    
+      using type =
+      typename std::conditional<
+        ! std::is_same<_Result, __nat>::value,
+        typename std::conditional<
+          std::is_void<_Ret>::value,
+          std::true_type,
+          std::is_convertible<_Result, _Ret>
+                          >::type,
+          std::false_type
+      >::type;
+      static const bool value = type::value;
+    };
+    template <class _Fp, class ..._Args>
+    using __invokable = __invokable_r<void, _Fp, _Args...>;
+    
   }
   
   ///
@@ -165,43 +258,75 @@ namespace cpp17
   
   namespace detail
   {
-    
-    using std::swap;
-    
-    template <class T, class U, class Enable = void>
-    struct is_swappable_with : std::false_type
+    template <typename T, typename U, typename Enable = void>
+    struct eval_is_swappable_with;
+  
+    template <typename T, typename U>
+    struct eval_is_swap_nothrow;
+
+    template <typename T, 
+              typename = typename std::enable_if<
+                cpp17::conjunction<std::is_move_constructible<T>,
+                                   std::is_move_assignable<T>>::value>::type>
+    inline void swap(T&, T&) noexcept (
+      cpp17::conjunction<std::is_nothrow_move_constructible<T>, 
+                         std::is_nothrow_move_assignable<T>>::value);
+  
+    template <typename T, std::size_t Size, 
+              typename = typename std::enable_if<
+                                    eval_is_swappable_with<T, T>::value>::type>
+    inline void swap(T (&)[Size], T (&)[Size]) noexcept (
+                                            eval_is_swap_nothrow<T, T>::value);
+  
+    template <typename T, typename U, typename Enable>
+    struct eval_is_swappable_with : std::false_type
     { };
   
+    template <typename T, typename U>
+    struct eval_is_swappable_with<T, U, cpp17::void_t<
+                     decltype (swap (std::declval<T> (), std::declval<U> ()))>> 
+      : std::true_type
+    { };
+    
+    template <typename T, typename U>
+    struct eval_is_swap_nothrow
+      : cpp17::bool_constant<noexcept (swap (std::declval<T> (), 
+                                             std::declval<U> ()))>
+    { };
+  
+    template <typename T, typename U>
+    struct eval_is_nothrow_swappable_with 
+      : cpp17::conjunction<eval_is_swappable_with<T, U>, 
+                           eval_is_swap_nothrow<T, U>>
+    { };
+  
+//    template <typename T, typename U>
+//    struct eval_is_nothrow_swappable_with<T, U, typename std::enable_if<
+//               noexcept (swap (std::declval<T> (), std::declval<U> ()))>::type>
+//      : std::true_type
+//    { };
+
     template <class T, class U>
-    struct is_swappable_with<T, U, cpp17::void_t<
-                     decltype (swap (std::declval<T> (), std::declval<U> ())),
-                     decltype (swap (std::declval<U> (), std::declval<T> ()))>>
-      : std::true_type        
-    { };
-  
-    template <class T>
-    struct is_swappable_with<T, T, 
-                    decltype (swap (std::declval<T&> (), std::declval<T&> ()))>
-      : std::true_type
-    { };
-  
-    template <class T, class U, class Enable = void>
-    struct is_nothrow_swappable_with : std::false_type
-    { };
-  
-    template <class T, class U>
-    struct is_nothrow_swappable_with<T, U, typename std::enable_if<
-               noexcept (swap (std::declval<T> (), std::declval<U> ()))
-            && noexcept (swap (std::declval<U> (), std::declval<T> ()))>::type>
-      : std::true_type
-    { };
-  
-    template <class T>
-    struct is_nothrow_swappable_with<T, T, typename std::enable_if<
-               noexcept (swap (std::declval<T> (), std::declval<T> ()))>::type>
-      : std::true_type
+    struct is_swappable_with 
+      : cpp17::conjunction<detail::eval_is_swappable_with<T, U>, 
+                           detail::eval_is_swappable_with<U, T>>
     { };
     
+    template <class T>
+    struct is_swappable_with<T, T>
+      : detail::eval_is_swappable_with<T, T>
+    { };
+    
+    template <class T, class U>
+    struct is_nothrow_swappable_with
+      : cpp17::conjunction<detail::eval_is_nothrow_swappable_with<T, U>,
+                           detail::eval_is_nothrow_swappable_with<U, T>>
+    { };
+    
+    template <class T>
+    struct is_nothrow_swappable_with<T, T>
+      : detail::eval_is_nothrow_swappable_with<T, T>
+    { };
   }
   
   template <class T, class U>
@@ -209,7 +334,9 @@ namespace cpp17
   { };
   
   template <class T>
-  struct is_swappable : is_swappable_with<T, T>
+  struct is_swappable 
+    : is_swappable_with<typename std::add_lvalue_reference<T>::type, 
+                        typename std::add_lvalue_reference<T>::type>
   { };
   
   template <class T, class U>
@@ -217,7 +344,9 @@ namespace cpp17
   { };
   
   template <class T>
-  struct is_nothrow_swappable : is_nothrow_swappable_with<T, T>
+  struct is_nothrow_swappable 
+    : is_nothrow_swappable_with<typename std::add_lvalue_reference<T>::type,
+                                typename std::add_lvalue_reference<T>::type>
   { };
   
   namespace detail
@@ -227,10 +356,9 @@ namespace cpp17
     { };
   
     template <typename Result, typename Return>
-    struct is_invocable<Result, Return, cpp17::void_t<Result>>
+    struct is_invocable<Result, Return, cpp17::void_t<typename Result::type>>
       : cpp17::disjunction<std::is_void<Return>, 
-                           std::is_convertible<Result, Return>
-                          >::type
+                           std::is_convertible<typename Result::type, Return>>
     { };
   
     template <typename Tp>
@@ -243,7 +371,7 @@ namespace cpp17
   
     template <class Return, class F, class ...ArgTypes>
     struct is_nothrow_invocable_r<true, false, Return, F, ArgTypes...>
-      : cpp17::bool_constant<noexcept (detail::test_noexcept<Return>(
+      : cpp17::bool_constant<noexcept (detail::test_noexcept<Return> (
            detail::invoke (std::declval<F> (), std::declval<ArgTypes> ()...)))>
     { };
   
@@ -257,9 +385,9 @@ namespace cpp17
   
   template <class Return, class F, class ...ArgTypes>
   struct is_invocable_r
-    : detail::is_invocable<cpp17::invoke_result_t<F, ArgTypes...>, Return>
+    : detail::is_invocable<cpp17::invoke_result<F, ArgTypes...>, Return>
   { };
-  
+
   template <class F, class ...ArgTypes>
   struct is_invocable : is_invocable_r<void, F, ArgTypes...>
   { };
@@ -267,7 +395,7 @@ namespace cpp17
   template <class Return, class F, class ...ArgTypes>
   struct is_nothrow_invocable_r 
     : detail::is_nothrow_invocable_r<
-        is_invocable_r<Return, F, ArgTypes...>::type, 
+        is_invocable_r<Return, F, ArgTypes...>::value, 
         std::is_void<Return>::value, 
         Return, F, ArgTypes...>
   { };

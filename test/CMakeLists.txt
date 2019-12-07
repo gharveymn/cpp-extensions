@@ -1,15 +1,19 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 PROJECT(cpp-extensions)
 
-SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD 17)
+
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
 
 INCLUDE_DIRECTORIES(../include)
 
-ADD_EXECUTABLE(is_permutation_pred_test is_permutation_pred_test.cpp)
-ADD_EXECUTABLE(is_permutation_test is_permutation_test.cpp)
-ADD_EXECUTABLE(mismatch_test mismatch_test.cpp)
-ADD_EXECUTABLE(mismatch_pred_test mismatch_pred_test.cpp)
-ADD_EXECUTABLE(equal_test equal_test.cpp)
-ADD_EXECUTABLE(equal_pred_test equal_pred_test.cpp)
-ADD_EXECUTABLE(tuple_test_pass tuple_test_pass.cpp)
-#ADD_EXECUTABLE(tuple_test_fail tuple_test_fail.cpp)
+MACRO(TEST name)
+	ADD_EXECUTABLE(${name} ${name}.cpp)
+ENDMACRO()
+
+file(GLOB filenames "*.cpp")
+
+FOREACH(fn ${filenames})
+	GET_FILENAME_COMPONENT(name ${fn} NAME_WE)
+	TEST(${name})
+ENDFOREACH()
